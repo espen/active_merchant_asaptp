@@ -7,11 +7,12 @@ class RemoteAsaptpTest < Test::Unit::TestCase
     @gateway = AsaptpGateway.new(fixtures(:asaptp))
     
     @amount = 100
-    @credit_card = credit_card('4000100011112224')
+    @credit_card = credit_card('4111111111111111', { :verification_value => '123', :month => '03', :year => '2012' } )
+    @credit_card_invalid_csv = credit_card('4111111111111111', { :verification_value => '321', :month => '03', :year => '2012' } )
     @declined_card = credit_card('4000300011112220')
     
     @options = { 
-      :order_id => '1',
+      :order_id => '33',
       :billing_address => address,
       :description => 'Store Purchase'
     }
@@ -20,38 +21,27 @@ class RemoteAsaptpTest < Test::Unit::TestCase
   def test_successful_purchase
     assert response = @gateway.purchase(@amount, @credit_card, @options)
     assert_success response
-    assert_equal 'REPLACE WITH SUCCESS MESSAGE', response.message
+    assert_equal 'Transaction was accepted successfully', response.message
   end
 
-  def test_unsuccessful_purchase
-    assert response = @gateway.purchase(@amount, @declined_card, @options)
+  def test_unsuccessful_purchase_with_invalid_verification_value
+    assert response = @gateway.purchase(@amount, @credit_card_invalid_csv, @options.update(:order_id => '833'))
+    assert_success response
+    assert_equal 'Invalid card number', response.message
+  end
+
+  def test_unsuccessful_purchase_with_invalid_card_number
+    assert response = @gateway.purchase(@amount, @declined_card, @options.update(:order_id => '933'))
     assert_failure response
-    assert_equal 'REPLACE WITH FAILED PURCHASE MESSAGE', response.message
-  end
-
-  def test_authorize_and_capture
-    amount = @amount
-    assert auth = @gateway.authorize(amount, @credit_card, @options)
-    assert_success auth
-    assert_equal 'Success', auth.message
-    assert auth.authorization
-    assert capture = @gateway.capture(amount, auth.authorization)
-    assert_success capture
-  end
-
-  def test_failed_capture
-    assert response = @gateway.capture(@amount, '')
-    assert_failure response
-    assert_equal 'REPLACE WITH GATEWAY FAILURE MESSAGE', response.message
+    assert_equal 'Invalid card number', response.message
   end
 
   def test_invalid_login
     gateway = AsaptpGateway.new(
-                :login => '',
-                :password => ''
+                :access_id => '', :merch_id => '', :secure_hash => '', :term_id => ''
               )
     assert response = gateway.purchase(@amount, @credit_card, @options)
     assert_failure response
-    assert_equal 'REPLACE WITH FAILURE MESSAGE', response.message
+    assert_equal 'Invalid identity', response.message
   end
 end

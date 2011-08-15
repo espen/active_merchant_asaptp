@@ -10,6 +10,12 @@
 #
 # Paste any required PEM certificates after the pem key.  
 #
+asaptp:
+  access_id: access_id
+  merch_id: merch_id
+  secure_hash: secure_hash
+  term_id: term_id
+
 authorize_net:
   login: X
   password: Y
