@@ -84,6 +84,7 @@ module ActiveMerchant #:nodoc:
             :cardnumber,
             :cardhash,
             :cardexpire,
+            :acquirer,
             :splitpayment,
             :fraudprobability,
             :fraudremarks,
@@ -99,8 +100,6 @@ module ActiveMerchant #:nodoc:
             Digest::MD5.hexdigest(generate_md5string)
           end
 
-          # Quickpay doesn't do acknowledgements of callback notifications
-          # Instead it uses and MD5 hash of all parameters
           def acknowledge(authcode = nil)
             generate_md5check == params['md5check']
           end
